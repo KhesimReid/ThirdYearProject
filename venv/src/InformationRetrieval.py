@@ -64,7 +64,7 @@ def removePunctuation(text):
     filteredText = re.sub(r'[^\w\s]', '', text)
     return filteredText
 
-
+# while loop to start here
 rawQuestion = input("Please enter the question you need answered: \n")
 print("\n")
 
@@ -124,7 +124,5 @@ for key in relevantParagraphs.keys():
         print(para)
         print("\n\n")
 
-# Questions where the right answer is in the output:
-# How many days notice must a user give before cancelling with PDF Technologies?
-# What country is covered by the Oracle agreement?
-# In what event is Echelon liable for damages?
+# while loop to end here
+
