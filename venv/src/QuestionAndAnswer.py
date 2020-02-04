@@ -9,6 +9,13 @@ import gensim.downloader as api
 from gensim.utils import simple_preprocess
 from smart_open import smart_open
 from pathlib import Path
+from allennlp.predictors.predictor import Predictor
+
+
+from gensim.test.utils import common_texts
+from gensim.corpora import Dictionary
+from gensim.models import Word2Vec, WordEmbeddingSimilarityIndex
+from gensim.similarities import SoftCosineSimilarity, SparseTermSimilarityMatrix
 
 # class ReadTxtFiles(object):
 #     def __init__(self, dirname):
@@ -36,18 +43,30 @@ def ReadTxtFiles(files):
             yield simple_preprocess(line)
 
 
-dictionary = corpora.Dictionary(ReadTxtFiles(files))
+# dictionary = corpora.Dictionary(ReadTxtFiles(files))
 #dictionary = corpora.Dictionary(ReadTxtFiles(absolutePath))
 
-fasttext_model300 = api.load('fasttext-wiki-news-subwords-300')
+# fasttext_model300 = api.load('fasttext-wiki-news-subwords-300')
 
 # Prepare the similarity matrix
-similarity_matrix = fasttext_model300.similarity_matrix(dictionary, tfidf=None, threshold=0.0, exponent=2.0,
-                                                        nonzero_limit=100)
+# similarity_matrix = fasttext_model300.similarity_matrix(dictionary, tfidf=None, threshold=0.0, exponent=2.0, nonzero_limit=100)
+
+
+fasttext_model300 = api.load('fasttext-wiki-news-subwords-300')
+# model = Word2Vec(fasttext_model300, size=20, min_count=1)  # train word-vectors
+termsim_index = WordEmbeddingSimilarityIndex(fasttext_model300)
+dictionary = corpora.Dictionary(ReadTxtFiles(files))
+bow_corpus = [dictionary.doc2bow(document) for document in common_texts]
+similarity_matrix = SparseTermSimilarityMatrix(termsim_index, dictionary)  # construct similarity matrix
+docsim_index = SoftCosineSimilarity(bow_corpus, similarity_matrix, num_best=10)
+
+
 
 stop_words = set(stopwords.words('english'))
 lemmatizer = nltk.stem.WordNetLemmatizer()
 
+answerPredictor = Predictor.from_path(
+    "https://storage.googleapis.com/allennlp-public-models/bidaf-elmo-model-2018.11.30-charpad.tar.gz")
 
 # Functions for removing stop words from a given list of words. It also lemmatizes the words to ease comparisons.
 def removeStopWords(text):
@@ -101,10 +120,8 @@ while(keepGoing):
             # doc2bow for bag of words vectors
             tokenVec = dictionary.doc2bow(tokens)
             questionVec = dictionary.doc2bow(questionWords)
-            cosVal = softcossim(tokenVec, questionVec, similarity_matrix)
-
-            # print(cosVal)
-            # cosVal = calculateCosSim(tokens, questionWords)
+            # cosVal = softcossim(tokenVec, questionVec, similarity_matrix)
+            cosVal = similarity_matrix.inner_product(tokenVec, questionVec)
 
             if (cosVal >= threshold):
                 if (fileName in relevantParagraphs):
@@ -118,13 +135,12 @@ while(keepGoing):
                     newEntry = {fileName: firstPara}
                     relevantParagraphs.update(newEntry)
 
-    print("\n")
     for key in relevantParagraphs.keys():
-        print("File: " + key)
-        print("\n")
+        print("File: " + key + "\n")
         for para in relevantParagraphs.get(key):
-            print(para)
-            print("\n\n")
+            result = answerPredictor.predict(passage=para, question=rawQuestion)
+            print('-> ' + result['best_span_str'])
+        print("-------------------------------------------------")
 
     moreQuestions = input("Please enter 'y' if you have more questions. Enter any other input if you do not: \n" )
 
@@ -133,4 +149,3 @@ while(keepGoing):
 
 
 # while loop to end here
-
