@@ -17,25 +17,16 @@ from gensim.corpora import Dictionary
 from gensim.models import Word2Vec, WordEmbeddingSimilarityIndex
 from gensim.similarities import SoftCosineSimilarity, SparseTermSimilarityMatrix
 
-# class ReadTxtFiles(object):
-#     def __init__(self, dirname):
-#         self.dirname = dirname
-#
-#     def __iter__(self):
-#         for fname in os.listdir(self.dirname):
-#             for line in open(os.path.join(self.dirname, fname), encoding='latin'):
-#                 yield simple_preprocess(line)
+# absolutePath = input("Please enter the file path for the directory containing files to be examined: \n")
 
+files = []
+absolutePath = '/Users/khesim/PycharmProjects/ThirdYearProject/venv/Licenses/'
 
-# notebook_path = os.path.abspath("Third Year Project - First Iteration.ipynb")
-# fileDirectory = os.path.join(os.path.dirname(notebook_path), "Licenses")
-# #fileDirectory = "~/Users/khesim/ThirdYearProject/Licenses"
+for r, d, f in os.walk(absolutePath):
+    for file in f:
+        if '.txt' in file:
+            files.append(os.path.join(r, file))
 
-# directory = input("Please enter the file path for the directory containing files to be examined: \n")
-# print("\n")
-files = ['Echelon.txt', 'Microsoft.txt', 'Oracle.txt', 'PDF Technologies.txt']
-
-# absolutePath = '~/PycharmProjects/ThirdYearProject/venv/Licenses/'
 
 def ReadTxtFiles(files):
     for fname in files:
