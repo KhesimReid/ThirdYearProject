@@ -9,26 +9,24 @@ import gensim.downloader as api
 from gensim.utils import simple_preprocess
 from smart_open import smart_open
 from pathlib import Path
-
-# class ReadTxtFiles(object):
-#     def __init__(self, dirname):
-#         self.dirname = dirname
-#
-#     def __iter__(self):
-#         for fname in os.listdir(self.dirname):
-#             for line in open(os.path.join(self.dirname, fname), encoding='latin'):
-#                 yield simple_preprocess(line)
+from allennlp.predictors.predictor import Predictor
 
 
-# notebook_path = os.path.abspath("Third Year Project - First Iteration.ipynb")
-# fileDirectory = os.path.join(os.path.dirname(notebook_path), "Licenses")
-# #fileDirectory = "~/Users/khesim/ThirdYearProject/Licenses"
+from gensim.test.utils import common_texts
+from gensim.corpora import Dictionary
+from gensim.models import Word2Vec, WordEmbeddingSimilarityIndex
+from gensim.similarities import SoftCosineSimilarity, SparseTermSimilarityMatrix
 
-# directory = input("Please enter the file path for the directory containing files to be examined: \n")
-# print("\n")
-files = ['Echelon.txt', 'Microsoft.txt', 'Oracle.txt', 'PDF Technologies.txt']
 
-# absolutePath = '~/PycharmProjects/ThirdYearProject/venv/Licenses/'
+files = []
+
+filePath = '../Licenses/'
+
+for r, d, f in os.walk(filePath):
+    for file in f:
+        if '.txt' in file:
+            files.append(os.path.join(r, file))
+
 
 def ReadTxtFiles(files):
     for fname in files:
@@ -36,18 +34,28 @@ def ReadTxtFiles(files):
             yield simple_preprocess(line)
 
 
-dictionary = corpora.Dictionary(ReadTxtFiles(files))
+# dictionary = corpora.Dictionary(ReadTxtFiles(files))
 #dictionary = corpora.Dictionary(ReadTxtFiles(absolutePath))
 
-fasttext_model300 = api.load('fasttext-wiki-news-subwords-300')
+# fasttext_model300 = api.load('fasttext-wiki-news-subwords-300')
 
 # Prepare the similarity matrix
-similarity_matrix = fasttext_model300.similarity_matrix(dictionary, tfidf=None, threshold=0.0, exponent=2.0,
-                                                        nonzero_limit=100)
+# similarity_matrix = fasttext_model300.similarity_matrix(dictionary, tfidf=None, threshold=0.0, exponent=2.0, nonzero_limit=100)
+
+
+fasttext_model300 = api.load('fasttext-wiki-news-subwords-300')
+# model = Word2Vec(fasttext_model300, size=20, min_count=1)  # train word-vectors
+termsim_index = WordEmbeddingSimilarityIndex(fasttext_model300)
+dictionary = corpora.Dictionary(ReadTxtFiles(files))
+bow_corpus = [dictionary.doc2bow(document) for document in common_texts]
+similarity_matrix = SparseTermSimilarityMatrix(termsim_index, dictionary)  # construct similarity matrix
+docsim_index = SoftCosineSimilarity(bow_corpus, similarity_matrix, num_best=10)
 
 stop_words = set(stopwords.words('english'))
 lemmatizer = nltk.stem.WordNetLemmatizer()
 
+answerPredictor = Predictor.from_path(
+    "https://storage.googleapis.com/allennlp-public-models/bidaf-elmo-model-2018.11.30-charpad.tar.gz")
 
 # Functions for removing stop words from a given list of words. It also lemmatizes the words to ease comparisons.
 def removeStopWords(text):
@@ -70,7 +78,7 @@ while(keepGoing):
     rawQuestion = input("Please enter the question you need answered: \n")
     print("\n")
 
-    threshold = 0.35
+    threshold = 0.0
     question = removePunctuation(rawQuestion)
     questionWords = question.split()
     questionWords = removeStopWords(questionWords)
@@ -101,12 +109,12 @@ while(keepGoing):
             # doc2bow for bag of words vectors
             tokenVec = dictionary.doc2bow(tokens)
             questionVec = dictionary.doc2bow(questionWords)
-            cosVal = softcossim(tokenVec, questionVec, similarity_matrix)
+            # cosVal = softcossim(tokenVec, questionVec, similarity_matrix)
+            simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
 
-            # print(cosVal)
-            # cosVal = calculateCosSim(tokens, questionWords)
+            print(simVal)
 
-            if (cosVal >= threshold):
+            if (simVal >= threshold):
                 if (fileName in relevantParagraphs):
                     currentList = relevantParagraphs.get(fileName)
                     updatedList.append(paragraph)
@@ -118,19 +126,16 @@ while(keepGoing):
                     newEntry = {fileName: firstPara}
                     relevantParagraphs.update(newEntry)
 
-    print("\n")
     for key in relevantParagraphs.keys():
-        print("File: " + key)
-        print("\n")
-        for para in relevantParagraphs.get(key):
-            print(para)
-            print("\n\n")
+        print("File: " + key + "\n")
+        # for para in relevantParagraphs.get(key):
+        #     result = answerPredictor.predict(passage=para, question=rawQuestion)
+        #     print('-> ' + result['best_span_str'])
+        print("-------------------------------------------------")
 
     moreQuestions = input("Please enter 'y' if you have more questions. Enter any other input if you do not: \n" )
 
     if moreQuestions != 'y':
         keepGoing = False
 
-
-# while loop to end here
 
