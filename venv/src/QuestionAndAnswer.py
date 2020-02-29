@@ -1,14 +1,11 @@
 import os
 import nltk
 import re
+from operator import itemgetter
 from nltk.corpus import stopwords
 from gensim import corpora
-from gensim.matutils import softcossim
-from gensim.models import WordEmbeddingSimilarityIndex
 import gensim.downloader as api
 from gensim.utils import simple_preprocess
-from smart_open import smart_open
-from pathlib import Path
 from allennlp.predictors.predictor import Predictor
 from gensim.test.utils import common_texts
 from gensim.corpora import Dictionary
@@ -19,7 +16,6 @@ filePath = input("Please enter the file path for the directory containing files 
 
 files = []
 
-# filePath = '../Licenses/'
 
 for r, d, f in os.walk(filePath):
     for file in f:
@@ -62,7 +58,7 @@ def removePunctuation(text):
     return filteredText
 
 
-threshold = 0.40
+threshold = 0.37
 
 keepGoing = True
 while(keepGoing):
@@ -104,20 +100,49 @@ while(keepGoing):
                 if (simVal >= threshold):
                     if (fileName in relevantParagraphs):
                         currentList = relevantParagraphs.get(fileName)
-                        updatedList.append(paragraph)
+                        pair = [simVal, paragraph]
+                        updatedList.append(pair)
                         newEntry = {fileName: updatedList}
                         relevantParagraphs.update(newEntry)
                     else:
                         firstPara = []
-                        firstPara.append(paragraph)
+                        pair = [simVal, paragraph]
+                        firstPara.append(pair)
                         newEntry = {fileName: firstPara}
                         relevantParagraphs.update(newEntry)
 
+                # if (simVal >= threshold):
+                #     if (fileName in relevantParagraphs):
+                #         currentList = relevantParagraphs.get(fileName)
+                #         updatedList.append(paragraph)
+                #         newEntry = {fileName: updatedList}
+                #         relevantParagraphs.update(newEntry)
+                #     else:
+                #         firstPara = []
+                #         firstPara.append(paragraph)
+                #         newEntry = {fileName: firstPara}
+                #         relevantParagraphs.update(newEntry)
+
+
+        # for key in relevantParagraphs.keys():
+        #     print("File: " + key + "\n")
+        #     for para in relevantParagraphs.get(key):
+        #         result = answerPredictor.predict(passage=para, question=rawQuestion)
+        #         print(para)
+        #         print("\n")
+        #         print('-> ' + result['best_span_str'])
+        #         print("\n")
+        #     print("-------------------------------------------------")
+
         for key in relevantParagraphs.keys():
             print("File: " + key + "\n")
-            for para in relevantParagraphs.get(key):
-                result = answerPredictor.predict(passage=para, question=rawQuestion)
-                print('-> ' + result['best_span_str'])
+            documentParas = sorted(relevantParagraphs.get(key), key=itemgetter(0), reverse=True)
+            for para in documentParas:
+                result = answerPredictor.predict(passage=para[1], question=rawQuestion)
+                print("Similarity Score: "+ str(para[0]) + "\n")
+                print("Paragraph:\n" + para[1])
+                print('Answer Span:\n' + result['best_span_str'])
+                print("\n")
             print("-------------------------------------------------")
 
         moreQuestions = input("Please enter 'y' if you have more questions. Enter any other input if you do not: \n")
@@ -155,13 +180,29 @@ while(keepGoing):
             simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
 
 
-            if (simVal >= threshold):
-                relevantParagraphs.append(paragraph)
+        #     if (simVal >= threshold):
+        #         relevantParagraphs.append(paragraph)
 
+            if (simVal >= threshold):
+                pair = [simVal, paragraph]
+                relevantParagraphs.append(pair)
+
+        relevantParagraphs = sorted(relevantParagraphs, key=itemgetter(0))
         for para in relevantParagraphs:
-            result = answerPredictor.predict(passage=para, question=rawQuestion)
-            print('-> ' + result['best_span_str'])
+            result = answerPredictor.predict(passage=para[1], question=rawQuestion)
+            print("Similarity Score: " + str(para[0]) + "\n")
+            print("Paragraph:\n" + para[1])
+            print('Answer Span:\n' + result['best_span_str'])
+            print("\n")
         print("-------------------------------------------------")
+
+        # for para in relevantParagraphs:
+        #     result = answerPredictor.predict(passage=para, question=rawQuestion)
+        #     print(para)
+        #     print("\n")
+        #     print('-> ' + result['best_span_str'])
+        #     print("\n")
+        # print("-------------------------------------------------")
 
         moreQuestions = input("Please enter 'y' if you have more questions. Enter any other input if you do not: \n")
 
