@@ -22,19 +22,17 @@ for root, directory, files in os.walk(allFilesPath):
 
 # Generates the similarity matrix of words using the fasttext wiki-news model,
 # the documents in gensim's common texts and the words from our documents.
-print("Loading Fasttext model...")
+print("1. Loading Fasttext model...")
 fasttext_model300 = pickle.load(open('fasttext_model.sav', 'rb'))
-print("here")
 termsim_index = WordEmbeddingSimilarityIndex(fasttext_model300)
-print("here2")
+print("2. Reading files in directory...")
 dictionary = corpora.Dictionary(QAFunctions.ReadTxtFiles(documents))
-print("here3")
-print("Generating similarity matrix...")
+print("3. Generating similarity matrix...")
 similarity_matrix = SparseTermSimilarityMatrix(termsim_index, dictionary)  # construct similarity matrix
-print("here5")
+
 
 pickle.dump(similarity_matrix, open('similarity_matrix.sav', 'wb'))
-print("Matrix Saved!")
+print("4. Matrix Saved!")
 
 
 

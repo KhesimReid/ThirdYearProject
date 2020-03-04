@@ -18,7 +18,7 @@ answerPredictor = Predictor.from_path(
     "https://storage.googleapis.com/allennlp-public-models/bidaf-elmo-model-2018.11.30-charpad.tar.gz")
 
 QAFunctions.clearScreen()
-filePath = input("Please enter the file path for the directory containing files to be questioned: ")
+filePath = '../Documents'
 
 documentList = []
 
@@ -36,20 +36,20 @@ def getMultiAnswer(rawQuestion, documents):
 
     # Dictionary to store files and the paragraphs which were sufficiently relevant
     relevantParagraphs = dict()
-
     # PARAGRAPH SELECTION SECTION
     # Loop through all files in directory
     for document in documents:
         documentName = document
 
-    try:
-        textFile = open(document, "r")  # NEED TRY CATCH HERE FOR os.walk
-    except FileNotFoundError:
-        print("It appears the directory or document you have entered does not exist.")
-        print("Please enter the option to change file or directory, then carefully enter the name of the file and try again.")
-        return
+        try:
+            textFile = open(document, "r")
+        except FileNotFoundError:
+            print("It appears the directory or document you have entered does not exist.")
+            print("Please enter the option to change file or directory, then carefully enter the name of the file and try again.")
+            return
 
         paragraphs = textFile.readlines()
+        textFile.close()
         updatedList = []
 
         for paragraph in paragraphs:
@@ -66,6 +66,7 @@ def getMultiAnswer(rawQuestion, documents):
             tokenVec = dictionary.doc2bow(tokens)
             questionVec = dictionary.doc2bow(questionWords)
             simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
+            # Using inner product with normalisation has same effect as soft cosine similarity
 
             if simVal >= threshold:
                 if documentName in relevantParagraphs:
@@ -92,7 +93,14 @@ def getMultiAnswer(rawQuestion, documents):
             for para in documentParas:
                 result = answerPredictor.predict(passage=para[1], question=rawQuestion)
                 print("Similarity Score: " + str(para[0]) + "\n")
-                print("Paragraph:\n" + para[1])
+                print("Paragraph:\n")
+                start = 0
+                lineLength = len(para[1])
+                while lineLength - start >= 185:
+                    print(para[1][start:start + 185])
+                    start += 185
+                print(para[1][start:])
+
                 print('Answer Span:\n' + result['best_span_str'])
                 print("\n")
             print("-------------------------------------------------")
@@ -112,7 +120,7 @@ def getBestAnswer(rawQuestion, documents):
     for document in documents:
         documentName = document
         try:
-            textFile = open(document, "r")  # NEED TRY CATCH HERE FOR os.walk
+            textFile = open(document, "r")
         except FileNotFoundError:
             print("It appears the directory or document you have entered does not exist.")
             print("Please enter the option to change file or directory, then carefully enter the name of the file and try again.")
@@ -120,6 +128,7 @@ def getBestAnswer(rawQuestion, documents):
 
 
         paragraphs = textFile.readlines()
+        textFile.close()
         updatedList = []
 
         for paragraph in paragraphs:
@@ -165,12 +174,13 @@ def getBestAnswer(rawQuestion, documents):
         print("END OF OUTPUT\n")
 
 
-threshold = 0.35
+threshold = 0.4
 mode = "Multi Answer"
 keepGoing = True
 
 # QAFunctions.clearScreen()
-print("Default Values: \nThreshold: " + str(threshold) + "\nMode: " + mode + "\nDocuments Queried: " + filePath)
+print("\nDefault Values: \nThreshold: " + str(threshold) + "\nMode: " + mode + "\nDocuments Queried: " + filePath)
+print("\n")
 print("INSTRUCTIONS")
 print("If you would like to ask a question, just enter the question.")
 print("If you would like to change the similarity threshold, please enter 1.")
@@ -217,7 +227,7 @@ while keepGoing:
 
     elif userInput == '5':
         mode = "Multi Answer"
-        print("You will be given all answers with similarity above the threshold.\n")
+        print("You will be given answers from all paragraphs with similarity above the threshold.\n")
 
     elif userInput == '6':
         keepGoing = False
