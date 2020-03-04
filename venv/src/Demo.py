@@ -17,6 +17,7 @@ print("Loading AllenNLP Predictor Model...\n")
 answerPredictor = Predictor.from_path(
     "https://storage.googleapis.com/allennlp-public-models/bidaf-elmo-model-2018.11.30-charpad.tar.gz")
 
+QAFunctions.clearScreen()
 filePath = input("Please enter the file path for the directory containing files to be questioned: ")
 
 documentList = []
@@ -26,43 +27,6 @@ for root, directory, files in os.walk(filePath):
     for file in files:
         if '.txt' in file:
             documentList.append(os.path.join(root, file))
-# documents = []
-#
-# # Loop through files in the directory and add them to a list
-# for root, directory, files in os.walk(allFilesPath):
-#     for file in files:
-#         if '.txt' in file:
-#             documents.append(os.path.join(root, file))
-#
-#
-# # Generates the similarity matrix of words using the fasttext wiki-news model,
-# # the documents in gensim's common texts and the words from our documents.
-# print("Loading Fasttext model...")
-# fasttext_model300 = pickle.load(open('fasttext_model.sav', 'rb'))
-# # fasttext_model300 = api.load('fasttext-wiki-news-subwords-300')
-# print("here")
-# termsim_index = WordEmbeddingSimilarityIndex(fasttext_model300)
-# print("here2")
-# dictionary = corpora.Dictionary(ReadTxtFiles(documents))
-# print("here3")
-# bow_corpus = [dictionary.doc2bow(document) for document in common_texts]
-# print("here4")
-# print("Generating similarity matrix...")
-# similarity_matrix = SparseTermSimilarityMatrix(termsim_index, dictionary)  # construct similarity matrix
-# print("here5")
-# docsim_index = SoftCosineSimilarity(bow_corpus, similarity_matrix, num_best=10)
-# print("here6")
-#
-#
-# # Loads the allenNLP bidaf-elmo model
-# answerPredictor = Predictor.from_path(
-#     "https://storage.googleapis.com/allennlp-public-models/bidaf-elmo-model-2018.11.30-charpad.tar.gz")
-#
-#
-# documentList = documents.copy()
-
-
-# def getOneAnswer(rawQuestion):
 
 
 def getMultiAnswer(rawQuestion, documents):
@@ -77,7 +41,13 @@ def getMultiAnswer(rawQuestion, documents):
     # Loop through all files in directory
     for document in documents:
         documentName = document
-        textFile = open(document, "r")
+
+    try:
+        textFile = open(document, "r")  # NEED TRY CATCH HERE FOR os.walk
+    except FileNotFoundError:
+        print("It appears the directory or document you have entered does not exist.")
+        print("Please enter the option to change file or directory, then carefully enter the name of the file and try again.")
+        return
 
         paragraphs = textFile.readlines()
         updatedList = []
@@ -141,7 +111,13 @@ def getBestAnswer(rawQuestion, documents):
     # Loop through all files in directory
     for document in documents:
         documentName = document
-        textFile = open(document, "r")
+        try:
+            textFile = open(document, "r")  # NEED TRY CATCH HERE FOR os.walk
+        except FileNotFoundError:
+            print("It appears the directory or document you have entered does not exist.")
+            print("Please enter the option to change file or directory, then carefully enter the name of the file and try again.")
+            return
+
 
         paragraphs = textFile.readlines()
         updatedList = []
@@ -190,12 +166,12 @@ def getBestAnswer(rawQuestion, documents):
 
 
 threshold = 0.35
-mode = "Best Answer"
+mode = "Multi Answer"
 keepGoing = True
 
-QAFunctions.clearScreen()
+# QAFunctions.clearScreen()
 print("Default Values: \nThreshold: " + str(threshold) + "\nMode: " + mode + "\nDocuments Queried: " + filePath)
-print("\n")
+print("INSTRUCTIONS")
 print("If you would like to ask a question, just enter the question.")
 print("If you would like to change the similarity threshold, please enter 1.")
 print("If you would like to change the directory being queried, please enter 2.")
@@ -205,7 +181,7 @@ print("If you would like to be given multiple answers, please enter 5.")
 print("If you would like to exit the program, please enter 6.")
 print("You can enter the word 'stats' to see the current settings, when asked for your input.")
 print("You can enter the word 'manual' to see the options again, when asked for your input.\n\n")
-input("Press enter when you are ready to begin.")
+# input("Press enter when you are ready to begin.")
 
 
 # Main driver code of the program
@@ -220,11 +196,14 @@ while keepGoing:
     elif userInput == '2':
         documentList.clear()
         filePath = input("Please enter the file path of the directory: ")
-        for root, directory, files in os.walk(filePath):
+        filesInDir = os.walk(filePath)  # NEED TRY CATCH HERE FOR os.walk
+        # for root, directory, files in os.walk(filePath):
+        for root, directory, files in filesInDir:
             for file in files:
                 if '.txt' in file:
-                    documentList.append(os.path.join(r, file))
+                    documentList.append(os.path.join(root, file))
         print("You are now querying " + filePath)
+
 
     elif userInput == '3':
         documentList.clear()
@@ -234,16 +213,17 @@ while keepGoing:
 
     elif userInput == '4':
         mode = "Best Answer"
-        print("\nYou will only be given one answer for queries.")
+        print("You will only be given one answer for queries.\n")
 
     elif userInput == '5':
         mode = "Multi Answer"
-        print("\nYou will be given all answers with similarity above the threshold.")
+        print("You will be given all answers with similarity above the threshold.\n")
 
-    elif userInput == '6': #Works
+    elif userInput == '6':
         keepGoing = False
 
-    elif userInput == 'manual': #Works
+    elif userInput == 'manual':
+        print("INSTRUCTIONS")
         print("If you would like to ask a question, just enter the question.")
         print("If you would like to change the similarity threshold, please enter 1.")
         print("If you would like to change the directory being queried, please enter 2.")
@@ -253,7 +233,6 @@ while keepGoing:
         print("If you would like to exit the program, please enter 6.")
         print("You can enter the word 'stats' to see the current settings, when asked for your input.")
 
-
     elif userInput == "stats":
         print("Mode: " + mode)
         print("Threshold: " + str(threshold))
@@ -262,6 +241,6 @@ while keepGoing:
     elif mode == "Best Answer":
         getBestAnswer(userInput, documentList)
 
-    elif(mode == "Multi Answer"):
+    elif mode == "Multi Answer":
         getMultiAnswer(userInput, documentList)
 

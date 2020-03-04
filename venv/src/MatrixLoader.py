@@ -29,13 +29,9 @@ termsim_index = WordEmbeddingSimilarityIndex(fasttext_model300)
 print("here2")
 dictionary = corpora.Dictionary(QAFunctions.ReadTxtFiles(documents))
 print("here3")
-# bow_corpus = [dictionary.doc2bow(document) for document in common_texts]
-# print("here4")
 print("Generating similarity matrix...")
 similarity_matrix = SparseTermSimilarityMatrix(termsim_index, dictionary)  # construct similarity matrix
 print("here5")
-# docsim_index = SoftCosineSimilarity(bow_corpus, similarity_matrix, num_best=10)
-# print("here6")
 
 pickle.dump(similarity_matrix, open('similarity_matrix.sav', 'wb'))
 print("Matrix Saved!")
