@@ -175,7 +175,7 @@ def getBestAnswer(rawQuestion, documents):
 
 
 threshold = 0.4
-mode = "Multi Answer"
+mode = "Best Answer"
 keepGoing = True
 
 # QAFunctions.clearScreen()
