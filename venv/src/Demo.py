@@ -101,7 +101,15 @@ def getMultiAnswer(rawQuestion, documents):
                     start += 185
                 print(para[1][start:])
 
-                print('Answer Span:\n' + result['best_span_str'])
+                #print('Answer Span:\n' + result['best_span_str'])
+                print("Answer Span: ")
+                answer = result['best_span_str']
+                start = 0
+                lineLength = len(answer)
+                while lineLength - start >= 185:
+                    print(answer[start:start + 185])
+                    start += 185
+                print(answer[start:])
                 print("\n")
             print("-------------------------------------------------")
         print("END OF OUTPUT\n")
@@ -169,7 +177,15 @@ def getBestAnswer(rawQuestion, documents):
             joinedText = ''.join(documentParas)
 
             result = answerPredictor.predict(passage=joinedText, question=rawQuestion)
-            print("Best Answer: " + result['best_span_str'])
+            # print("Best Answer: " + result['best_span_str'])
+            print("Best Answer: ")
+            answer = result['best_span_str']
+            start = 0
+            lineLength = len(answer)
+            while lineLength - start >= 185:
+                print(answer[start:start + 185])
+                start += 185
+            print(answer[start:])
             print("-------------------------------------------------")
         print("END OF OUTPUT\n")
 
