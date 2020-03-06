@@ -101,7 +101,6 @@ def getMultiAnswer(rawQuestion, documents):
                     start += 185
                 print(para[1][start:])
 
-                #print('Answer Span:\n' + result['best_span_str'])
                 print("Answer Span: ")
                 answer = result['best_span_str']
                 start = 0
@@ -257,7 +256,7 @@ while keepGoing:
         print("If you would like to be given one best answer per document, please enter 4.")
         print("If you would like to be given multiple answers, please enter 5.")
         print("If you would like to exit the program, please enter 6.")
-        print("You can enter the word 'stats' to see the current settings, when asked for your input.")
+        print("You can enter the word 'stats' to see the current settings.")
 
     elif userInput == "stats":
         print("Mode: " + mode)
