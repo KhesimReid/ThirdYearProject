@@ -7,6 +7,7 @@ from gensim.utils import simple_preprocess
 stop_words = set(stopwords.words('english'))
 lemmatizer = nltk.stem.WordNetLemmatizer()
 
+#PGets text from all files in list
 def ReadTxtFiles(files):
     for fname in files:
         for line in open(fname):

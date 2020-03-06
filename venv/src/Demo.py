@@ -29,6 +29,7 @@ for root, directory, files in os.walk(filePath):
             documentList.append(os.path.join(root, file))
 
 
+# Function for returning multiple answers
 def getMultiAnswer(rawQuestion, documents):
     question = QAFunctions.removePunctuation(rawQuestion)
     questionWords = question.split()
@@ -114,6 +115,7 @@ def getMultiAnswer(rawQuestion, documents):
         print("END OF OUTPUT\n")
 
 
+# Function for returning best answer from document
 def getBestAnswer(rawQuestion, documents):
     question = QAFunctions.removePunctuation(rawQuestion)
     questionWords = question.split()
@@ -189,6 +191,7 @@ def getBestAnswer(rawQuestion, documents):
         print("END OF OUTPUT\n")
 
 
+# Default Settings
 threshold = 0.4
 mode = "Best Answer"
 keepGoing = True
@@ -201,12 +204,11 @@ print("If you would like to ask a question, just enter the question.")
 print("If you would like to change the similarity threshold, please enter 1.")
 print("If you would like to change the directory being queried, please enter 2.")
 print("If you would like to query a specific document, please enter 3.")
-print("If you would like to be given one best answer per document, please enter 4.")
-print("If you would like to be given multiple answers, please enter 5.")
+print("If you would like to be given the best answer per document, please enter 4.")
+print("If you would like to be given multiple possible answers, please enter 5.")
 print("If you would like to exit the program, please enter 6.")
 print("You can enter the word 'stats' to see the current settings, when asked for your input.")
 print("You can enter the word 'manual' to see the options again, when asked for your input.\n\n")
-# input("Press enter when you are ready to begin.")
 
 
 # Main driver code of the program
@@ -253,8 +255,8 @@ while keepGoing:
         print("If you would like to change the similarity threshold, please enter 1.")
         print("If you would like to change the directory being queried, please enter 2.")
         print("If you would like to query a specific document, please enter 3.")
-        print("If you would like to be given one best answer per document, please enter 4.")
-        print("If you would like to be given multiple answers, please enter 5.")
+        print("If you would like to be given the best answer per document, please enter 4.")
+        print("If you would like to be given multiple possible answers, please enter 5.")
         print("If you would like to exit the program, please enter 6.")
         print("You can enter the word 'stats' to see the current settings.")
 
