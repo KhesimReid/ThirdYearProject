@@ -153,12 +153,13 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
         for key in relevantParagraphs.keys():
             print("File: " + key + "\n")
             documentParas = sorted(relevantParagraphs.get(key), key=itemgetter(0), reverse=True)
-            for para in documentParas:
+            for i, para in enumerate(documentParas, 1):
                 result = answerPredictor.predict(passage=para[1], question=rawQuestion)
                 answer = result['best_span_str']
-                para[1].replace(answer, '\033[44;33m{}\033[m'.format(answer))
+                print("Answer #{}".format(i))
                 print("Similarity Score: " + str(para[0]) + "\n")
-                print("Answer:\n", )
+
+                para[1] = para[1].replace(answer, '\033[44;33m{}\033[m'.format(answer))
                 start = 0
                 lineLength = len(para[1])
                 while lineLength - start >= 185:
@@ -191,21 +192,33 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
             print("Best Answer: ")
             answer = result['best_span_str']
 
-            joinedText.replace(answer, '\033[44;33m{}\033[m'.format(answer))
+            paras = joinedText.splitlines()
+            for para in paras:
+                if answer in para:
+                    answerPara = para.replace(answer, '\033[44;33m{}\033[m'.format(answer))
+                    break
 
             start = 0
-            lineLength = len(joinedText)
+            lineLength = len(answerPara)
             while lineLength - start >= 185:
-                print(joinedText[start:start + 185])
+                print(answerPara[start:start + 185])
                 start += 185
-            print(joinedText[start:])
+            print(answerPara[start:])
+
+            # joinedText = joinedText.replace(answer, '\033[44;33m{}\033[m'.format(answer))
+            # start = 0
+            # lineLength = len(joinedText)
+            # while lineLength - start >= 185:
+            #     print(joinedText[start:start + 185])
+            #     start += 185
+            # print(joinedText[start:])
             print("-------------------------------------------------")
         print("END OF OUTPUT\n")
 
 
 # Default Settings
 threshold = 0.4
-mode = "Best Answer"
+mode = "Multi Answer"
 keepGoing = True
 
 print("\nDefault Values: \nThreshold: " + str(threshold) + "\nMode: " + mode + "\nDocuments Queried: " + filePath)
