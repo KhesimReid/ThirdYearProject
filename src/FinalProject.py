@@ -159,7 +159,7 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
                 print("Answer #{}".format(i))
                 print("Similarity Score: " + str(para[0]) + "\n")
 
-                para[1] = para[1].replace(answer, '\033[44;33m{}\033[m'.format(answer))
+                para[1] = para[1].replace(answer, '\033[43;37m{}\033[m'.format(answer))
                 start = 0
                 lineLength = len(para[1])
                 while lineLength - start >= 185:
@@ -195,7 +195,7 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
             paras = joinedText.splitlines()
             for para in paras:
                 if answer in para:
-                    answerPara = para.replace(answer, '\033[44;33m{}\033[m'.format(answer))
+                    answerPara = para.replace(answer, '\033[43;37m{}\033[m'.format(answer))
                     break
 
             start = 0
@@ -218,7 +218,7 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
 
 # Default Settings
 threshold = 0.4
-mode = "Multi Answer"
+mode = "Best Answer"
 keepGoing = True
 
 print("\nDefault Values: \nThreshold: " + str(threshold) + "\nMode: " + mode + "\nDocuments Queried: " + filePath)
