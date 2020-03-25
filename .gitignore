@@ -3,3 +3,5 @@ venv/bin
 venv/include
 venv/lib
 pyvenv.cfg
+src/fasttext_model.sav
+src/similarity_matrix.sav

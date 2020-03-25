@@ -4,9 +4,6 @@ import QAFunctions
 from operator import itemgetter
 from gensim import corpora
 from allennlp.predictors.predictor import Predictor
-from gensim.corpora import Dictionary
-from gensim.models import Word2Vec, WordEmbeddingSimilarityIndex
-from gensim.similarities import SoftCosineSimilarity, SparseTermSimilarityMatrix
 
 
 similarity_matrix = pickle.load(open('similarity_matrix.sav', 'rb'))
@@ -103,65 +100,14 @@ def getAnswers(rawQuestion, documents, chosenMode):
         print("SORRY! NO ANSWER AVAILABLE.")
         print("Perhaps you can try asking again with a lower threshold value.")
         print("-------------------------------------------------\n")
-    else:
-        getSpan(relevantParagraphs, rawQuestion, chosenMode)
-    # elif chosenMode == 'Multi Answer':
-    #     for key in relevantParagraphs.keys():
-    #         print("File: " + key + "\n")
-    #         documentParas = sorted(relevantParagraphs.get(key), key=itemgetter(0), reverse=True)
-    #         for para in documentParas:
-    #             result = answerPredictor.predict(passage=para[1], question=rawQuestion)
-    #             print("Similarity Score: " + str(para[0]) + "\n")
-    #             print("Paragraph:\n")
-    #             start = 0
-    #             lineLength = len(para[1])
-    #             while lineLength - start >= 185:
-    #                 print(para[1][start:start + 185])
-    #                 start += 185
-    #             print(para[1][start:])
-    #
-    #             print("Answer Span: ")
-    #             answer = result['best_span_str']
-    #             start = 0
-    #             lineLength = len(answer)
-    #             while lineLength - start >= 185:
-    #                 print(answer[start:start + 185])
-    #                 start += 185
-    #             print(answer[start:])
-    #             print("\n")
-    #         print("-------------------------------------------------")
-    #     print("END OF OUTPUT\n")
-    # else:
-    #     for key in relevantParagraphs.keys():
-    #         print("File: " + key + "\n")
-    #         documentParas = relevantParagraphs.get(key)
-    #         joinedText = ''.join(documentParas)
-    #
-    #         result = answerPredictor.predict(passage=joinedText, question=rawQuestion)
-    #         print("Best Answer: ")
-    #         answer = result['best_span_str']
-    #         start = 0
-    #         lineLength = len(answer)
-    #         while lineLength - start >= 185:
-    #             print(answer[start:start + 185])
-    #             start += 185
-    #         print(answer[start:])
-    #         print("-------------------------------------------------")
-    #     print("END OF OUTPUT\n")
-
-
-# Function for identifying the answer span in the paragraphs
-def getSpan(relevantParagraphs, rawQuestion, chosenMode):
-    if chosenMode == 'Multi Answer':
+    elif chosenMode == 'Multi Answer':
         for key in relevantParagraphs.keys():
             print("File: " + key + "\n")
             documentParas = sorted(relevantParagraphs.get(key), key=itemgetter(0), reverse=True)
             for para in documentParas:
                 result = answerPredictor.predict(passage=para[1], question=rawQuestion)
-                answer = result['best_span_str']
-                para[1].replace(answer, '\033[44;33m{}\033[m'.format(answer))
                 print("Similarity Score: " + str(para[0]) + "\n")
-                print("Answer:\n", )
+                print("Paragraph:\n")
                 start = 0
                 lineLength = len(para[1])
                 while lineLength - start >= 185:
@@ -169,41 +115,197 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
                     start += 185
                 print(para[1][start:])
 
-                # print("Answer Span: ")
-                # answer = result['best_span_str']
-                #
-                #
-                #
-                # start = 0
-                # lineLength = len(answer)
-                # while lineLength - start >= 185:
-                #     print(answer[start:start + 185])
-                #     start += 185
-                # print(answer[start:])
-                # print("\n")
+                print("Answer Span: ")
+                answer = result['best_span_str']
+                start = 0
+                lineLength = len(answer)
+                while lineLength - start >= 185:
+                    print(answer[start:start + 185])
+                    start += 185
+                print(answer[start:])
+                print("\n")
             print("-------------------------------------------------")
         print("END OF OUTPUT\n")
-
     else:
         for key in relevantParagraphs.keys():
             print("File: " + key + "\n")
             documentParas = relevantParagraphs.get(key)
-            joinedText = '\n'.join(documentParas)
+            joinedText = ''.join(documentParas)
 
             result = answerPredictor.predict(passage=joinedText, question=rawQuestion)
             print("Best Answer: ")
             answer = result['best_span_str']
-
-            joinedText.replace(answer, '\033[44;33m{}\033[m'.format(answer))
-
             start = 0
-            lineLength = len(joinedText)
+            lineLength = len(answer)
             while lineLength - start >= 185:
-                print(joinedText[start:start + 185])
+                print(answer[start:start + 185])
                 start += 185
-            print(joinedText[start:])
+            print(answer[start:])
             print("-------------------------------------------------")
         print("END OF OUTPUT\n")
+
+
+
+# # Function for returning multiple answers
+# def getMultiAnswer(rawQuestion, documents):
+#     question = QAFunctions.removePunctuation(rawQuestion)
+#     questionWords = question.split()
+#     questionWords = QAFunctions.removeStopWords(questionWords)
+#
+#     # Dictionary to store files and the paragraphs which were sufficiently relevant
+#     relevantParagraphs = dict()
+#     # PARAGRAPH SELECTION SECTION
+#     # Loop through all files in directory
+#     for document in documents:
+#         documentName = document
+#
+#         try:
+#             textFile = open(document, "r")
+#         except FileNotFoundError:
+#             print("It appears the directory or document you have entered does not exist.")
+#             print("Please enter the option to change file or directory, then carefully enter the name of the file and try again.")
+#             return
+#
+#         paragraphs = textFile.readlines()
+#         textFile.close()
+#         updatedList = []
+#
+#         for paragraph in paragraphs:
+#             cleanedText = QAFunctions.removePunctuation(paragraph)
+#             tokens = cleanedText.split()
+#             tokens = QAFunctions.removeStopWords(tokens)
+#
+#             allText = [tokens, questionWords]
+#
+#             # Prepare a dictionary and a corpus.
+#             dictionary = corpora.Dictionary(allText)
+#
+#             # doc2bow for bag of words vectors
+#             tokenVec = dictionary.doc2bow(tokens)
+#             questionVec = dictionary.doc2bow(questionWords)
+#             simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
+#             # Using inner product with normalisation has same effect as soft cosine similarity
+#
+#             if simVal >= threshold:
+#                 if documentName in relevantParagraphs:
+#                     updatedList = relevantParagraphs.get(documentName)
+#                     pair = [simVal, paragraph]
+#                     updatedList.append(pair)
+#                     newEntry = {documentName: updatedList}
+#                     relevantParagraphs.update(newEntry)
+#                 else:
+#                     firstPara = []
+#                     pair = [simVal, paragraph]
+#                     firstPara.append(pair)
+#                     newEntry = {documentName: firstPara}
+#                     relevantParagraphs.update(newEntry)
+#
+#     if len(relevantParagraphs) == 0:
+#         print("SORRY! NO ANSWER AVAILABLE.")
+#         print("Perhaps you can try asking again with a lower threshold value.")
+#         print("-------------------------------------------------\n")
+#     else:
+#         for key in relevantParagraphs.keys():
+#             print("File: " + key + "\n")
+#             documentParas = sorted(relevantParagraphs.get(key), key=itemgetter(0), reverse=True)
+#             for para in documentParas:
+#                 result = answerPredictor.predict(passage=para[1], question=rawQuestion)
+#                 print("Similarity Score: " + str(para[0]) + "\n")
+#                 print("Paragraph:\n")
+#                 start = 0
+#                 lineLength = len(para[1])
+#                 while lineLength - start >= 185:
+#                     print(para[1][start:start + 185])
+#                     start += 185
+#                 print(para[1][start:])
+#
+#                 print("Answer Span: ")
+#                 answer = result['best_span_str']
+#                 start = 0
+#                 lineLength = len(answer)
+#                 while lineLength - start >= 185:
+#                     print(answer[start:start + 185])
+#                     start += 185
+#                 print(answer[start:])
+#                 print("\n")
+#             print("-------------------------------------------------")
+#         print("END OF OUTPUT\n")
+#
+#
+# # Function for returning best answer from document
+# def getBestAnswer(rawQuestion, documents):
+#     question = QAFunctions.removePunctuation(rawQuestion)
+#     questionWords = question.split()
+#     questionWords = QAFunctions.removeStopWords(questionWords)
+#
+#     # Dictionary to store files and the paragraphs which were sufficiently relevant
+#     relevantParagraphs = dict()
+#
+#     # PARAGRAPH SELECTION SECTION
+#     # Loop through all files in directory
+#     for document in documents:
+#         documentName = document
+#         try:
+#             textFile = open(document, "r")
+#         except FileNotFoundError:
+#             print("It appears the directory or document you have entered does not exist.")
+#             print("Please enter the option to change file or directory, then carefully enter the name of the file and try again.")
+#             return
+#
+#
+#         paragraphs = textFile.readlines()
+#         textFile.close()
+#         updatedList = []
+#
+#         for paragraph in paragraphs:
+#             cleanedText = QAFunctions.removePunctuation(paragraph)
+#             tokens = cleanedText.split()
+#             tokens = QAFunctions.removeStopWords(tokens)
+#
+#             allText = [tokens, questionWords]
+#
+#             # Prepare a dictionary and a corpus.
+#             dictionary = corpora.Dictionary(allText)
+#
+#             # doc2bow for bag of words vectors
+#             tokenVec = dictionary.doc2bow(tokens)
+#             questionVec = dictionary.doc2bow(questionWords)
+#             simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
+#
+#             if simVal >= threshold:
+#                 if documentName in relevantParagraphs:
+#                     updatedList = relevantParagraphs.get(documentName)
+#                     updatedList.append(paragraph)
+#                     newEntry = {documentName: updatedList}
+#                     relevantParagraphs.update(newEntry)
+#                 else:
+#                     firstPara = []
+#                     firstPara.append(paragraph)
+#                     newEntry = {documentName: firstPara}
+#                     relevantParagraphs.update(newEntry)
+#
+#     if len(relevantParagraphs) == 0:
+#         print("SORRY! NO ANSWERS AVAILABLE.")
+#         print("Perhaps you can try asking again with a lower threshold value.")
+#         print("-------------------------------------------------\n")
+#     else:
+#         for key in relevantParagraphs.keys():
+#             print("File: " + key + "\n")
+#             documentParas = relevantParagraphs.get(key)
+#             joinedText = ''.join(documentParas)
+#
+#             result = answerPredictor.predict(passage=joinedText, question=rawQuestion)
+#             # print("Best Answer: " + result['best_span_str'])
+#             print("Best Answer: ")
+#             answer = result['best_span_str']
+#             start = 0
+#             lineLength = len(answer)
+#             while lineLength - start >= 185:
+#                 print(answer[start:start + 185])
+#                 start += 185
+#             print(answer[start:])
+#             print("-------------------------------------------------")
+#         print("END OF OUTPUT\n")
 
 
 # Default Settings

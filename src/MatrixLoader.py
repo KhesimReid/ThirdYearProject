@@ -1,13 +1,9 @@
 import os
 import pickle
-import gensim.downloader as api
 import QAFunctions
 from gensim import corpora
-from allennlp.predictors.predictor import Predictor
-from gensim.test.utils import common_texts
-from gensim.corpora import Dictionary
-from gensim.models import Word2Vec, WordEmbeddingSimilarityIndex
-from gensim.similarities import SoftCosineSimilarity, SparseTermSimilarityMatrix
+from gensim.models import WordEmbeddingSimilarityIndex
+from gensim.similarities import SparseTermSimilarityMatrix
 
 allFilesPath = input("Enter the path to the directory you wish to build the similarity matrix with: ")
 
