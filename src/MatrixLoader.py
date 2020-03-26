@@ -24,9 +24,9 @@ termsim_index = WordEmbeddingSimilarityIndex(fasttext_model300)
 print("2. Reading files in directory...")
 dictionary = corpora.Dictionary(QAFunctions.ReadTxtFiles(documents))
 print("3. Generating similarity matrix...")
-similarity_matrix = SparseTermSimilarityMatrix(termsim_index, dictionary)  # construct similarity matrix
+similarity_matrix = SparseTermSimilarityMatrix(termsim_index, dictionary)  # Construct similarity matrix
 
-
+# Save similarity matrix to a file to be reused without long load time.
 pickle.dump(similarity_matrix, open('similarity_matrix.sav', 'wb'))
 print("4. Matrix Saved!")
 

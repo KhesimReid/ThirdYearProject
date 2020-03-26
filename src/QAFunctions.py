@@ -8,7 +8,7 @@ stop_words = set(stopwords.words('english'))
 lemmatizer = nltk.stem.WordNetLemmatizer()
 
 
-# Gets text from all files in list
+# Function for getting text from all files in the given list.
 def ReadTxtFiles(files):
     for fname in files:
         for line in open(fname):

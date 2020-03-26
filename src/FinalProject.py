@@ -5,10 +5,10 @@ from operator import itemgetter
 from gensim import corpora
 from allennlp.predictors.predictor import Predictor
 
-
+# Load the similarity matrix from the saved file.
 similarity_matrix = pickle.load(open('similarity_matrix.sav', 'rb'))
 
-# Loads the allenNLP bidaf-elmo model
+# Load the allenNLP  model
 print("Loading AllenNLP Predictor Model...\n")
 
 answerPredictor = Predictor.from_path(
@@ -28,17 +28,19 @@ for root, directory, files in os.walk(filePath):
 
 # Function for returning answers
 def getAnswers(rawQuestion, documents, chosenMode):
+    # Pre-process the user's question.
     question = QAFunctions.removePunctuation(rawQuestion)
     questionWords = question.split()
     questionWords = QAFunctions.removeStopWords(questionWords)
 
     # Dictionary to store files and the paragraphs which were sufficiently relevant
     relevantParagraphs = dict()
-    # PARAGRAPH SELECTION SECTION
+
     # Loop through all files in directory
     for document in documents:
         documentName = document
 
+        # Ensure that the file exists before proceeding.
         try:
             textFile = open(document, "r")
         except FileNotFoundError:
@@ -47,11 +49,14 @@ def getAnswers(rawQuestion, documents, chosenMode):
                 "Please enter the option to change file or directory, then carefully enter the name of the file and try again.")
             return
 
+        # Split document text into separate paragraphs
         paragraphs = textFile.readlines()
         textFile.close()
         updatedList = []
 
+        # Loop through the paragraphs
         for paragraph in paragraphs:
+            # Pre-process the paragraph string
             cleanedText = QAFunctions.removePunctuation(paragraph)
             tokens = cleanedText.split()
             tokens = QAFunctions.removeStopWords(tokens)
@@ -61,12 +66,14 @@ def getAnswers(rawQuestion, documents, chosenMode):
             # Prepare a dictionary and a corpus.
             dictionary = corpora.Dictionary(allText)
 
-            # doc2bow for bag of words vectors
+            # Convert the paragraph words and question words to bag of words vectors
             tokenVec = dictionary.doc2bow(tokens)
             questionVec = dictionary.doc2bow(questionWords)
-            simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
-            # Using inner product with normalisation has same effect as soft cosine similarity
 
+            # Using inner product with normalisation has same effect as soft cosine similarity
+            simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
+
+            # Update the dictionary each time a paragraph is above the similarity threshold.
             if simVal >= threshold:
                 # For multi-answer mode also, show sim val to know which paragraph is most similar to question
                 # so dictionary entry is list of lists (pairs)
@@ -83,6 +90,7 @@ def getAnswers(rawQuestion, documents, chosenMode):
                         firstPara.append(pair)
                         newEntry = {documentName: firstPara}
                         relevantParagraphs.update(newEntry)
+
                 # Only need paragraphs for single answer mode so dictionary entry is list of paragraphs
                 else:
                     if documentName in relevantParagraphs:
@@ -102,64 +110,26 @@ def getAnswers(rawQuestion, documents, chosenMode):
         print("-------------------------------------------------\n")
     else:
         getSpan(relevantParagraphs, rawQuestion, chosenMode)
-    # elif chosenMode == 'Multi Answer':
-    #     for key in relevantParagraphs.keys():
-    #         print("File: " + key + "\n")
-    #         documentParas = sorted(relevantParagraphs.get(key), key=itemgetter(0), reverse=True)
-    #         for para in documentParas:
-    #             result = answerPredictor.predict(passage=para[1], question=rawQuestion)
-    #             print("Similarity Score: " + str(para[0]) + "\n")
-    #             print("Paragraph:\n")
-    #             start = 0
-    #             lineLength = len(para[1])
-    #             while lineLength - start >= 185:
-    #                 print(para[1][start:start + 185])
-    #                 start += 185
-    #             print(para[1][start:])
-    #
-    #             print("Answer Span: ")
-    #             answer = result['best_span_str']
-    #             start = 0
-    #             lineLength = len(answer)
-    #             while lineLength - start >= 185:
-    #                 print(answer[start:start + 185])
-    #                 start += 185
-    #             print(answer[start:])
-    #             print("\n")
-    #         print("-------------------------------------------------")
-    #     print("END OF OUTPUT\n")
-    # else:
-    #     for key in relevantParagraphs.keys():
-    #         print("File: " + key + "\n")
-    #         documentParas = relevantParagraphs.get(key)
-    #         joinedText = ''.join(documentParas)
-    #
-    #         result = answerPredictor.predict(passage=joinedText, question=rawQuestion)
-    #         print("Best Answer: ")
-    #         answer = result['best_span_str']
-    #         start = 0
-    #         lineLength = len(answer)
-    #         while lineLength - start >= 185:
-    #             print(answer[start:start + 185])
-    #             start += 185
-    #         print(answer[start:])
-    #         print("-------------------------------------------------")
-    #     print("END OF OUTPUT\n")
 
 
-# Function for identifying the answer span in the paragraphs
+# Function for identifying the answer span in the paragraphs.
 def getSpan(relevantParagraphs, rawQuestion, chosenMode):
     if chosenMode == 'Multi Answer':
+        # Loop through files which contain relevant paragraphs.
         for key in relevantParagraphs.keys():
             print("File: " + key + "\n")
+
+            # Sort the paragraphs so that the most similar ones are shown first.
             documentParas = sorted(relevantParagraphs.get(key), key=itemgetter(0), reverse=True)
+
+            # Print out each paragraph with the answer span highlighted.
             for i, para in enumerate(documentParas, 1):
                 result = answerPredictor.predict(passage=para[1], question=rawQuestion)
                 answer = result['best_span_str']
                 print("Answer #{}".format(i))
                 print("Similarity Score: " + str(para[0]) + "\n")
 
-                para[1] = para[1].replace(answer, '\033[43;37m{}\033[m'.format(answer))
+                para[1] = para[1].replace(answer, '\033[44;33m{}\033[m'.format(answer))
                 start = 0
                 lineLength = len(para[1])
                 while lineLength - start >= 185:
@@ -167,22 +137,11 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
                     start += 185
                 print(para[1][start:])
 
-                # print("Answer Span: ")
-                # answer = result['best_span_str']
-                #
-                #
-                #
-                # start = 0
-                # lineLength = len(answer)
-                # while lineLength - start >= 185:
-                #     print(answer[start:start + 185])
-                #     start += 185
-                # print(answer[start:])
-                # print("\n")
             print("-------------------------------------------------")
         print("END OF OUTPUT\n")
 
     else:
+        # Loop through files which contain relevant paragraphs.
         for key in relevantParagraphs.keys():
             print("File: " + key + "\n")
             documentParas = relevantParagraphs.get(key)
@@ -192,10 +151,11 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
             print("Best Answer: ")
             answer = result['best_span_str']
 
+            # Split the accumulated paragraphs and print the one which contains the answer.
             paras = joinedText.splitlines()
             for para in paras:
                 if answer in para:
-                    answerPara = para.replace(answer, '\033[43;37m{}\033[m'.format(answer))
+                    answerPara = para.replace(answer, '\033[44;33m{}\033[m'.format(answer))
                     break
 
             start = 0
@@ -205,14 +165,7 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
                 start += 185
             print(answerPara[start:])
 
-            # joinedText = joinedText.replace(answer, '\033[44;33m{}\033[m'.format(answer))
-            # start = 0
-            # lineLength = len(joinedText)
-            # while lineLength - start >= 185:
-            #     print(joinedText[start:start + 185])
-            #     start += 185
-            # print(joinedText[start:])
-            print("-------------------------------------------------")
+            print("-------------------------------------------------\n")
         print("END OF OUTPUT\n")
 
 
@@ -237,42 +190,46 @@ print("You can enter the word 'manual' to see the options again, when asked for 
 
 # Main driver code of the program
 while keepGoing:
-    # QAFunctions.clearScreen()
     userInput = input("Your Input: ")
 
+    # Change similarity threshold.
     if userInput == '1':
         threshold = float(input("Please enter new threshold (number between 0 and 1): "))
         print("Similarity threshold changed to " + str(threshold))
 
+    # Change directory to be queried.
     elif userInput == '2':
         documentList.clear()
         filePath = input("Please enter the file path of the directory: ")
-        filesInDir = os.walk(filePath)  # NEED TRY CATCH HERE FOR os.walk
-        # for root, directory, files in os.walk(filePath):
+        filesInDir = os.walk(filePath)
         for root, directory, files in filesInDir:
             for file in files:
                 if '.txt' in file:
                     documentList.append(os.path.join(root, file))
         print("You are now querying " + filePath)
 
-
+    # Change document to be queried.
     elif userInput == '3':
         documentList.clear()
         filePath = input("Please enter the file path of the document: ")
         documentList.append(filePath)
         print("You are now querying " + filePath)
 
+    # Change mode to Best Answer mode.
     elif userInput == '4':
         mode = "Best Answer"
         print("You will only be given one answer for queries.\n")
 
+    # Change mode to Multi Answer mode.
     elif userInput == '5':
         mode = "Multi Answer"
         print("You will be given answers from all paragraphs with similarity above the threshold.\n")
 
+    # Terminate program.
     elif userInput == '6':
         keepGoing = False
 
+    # Display instructions.
     elif userInput == 'manual':
         print("INSTRUCTIONS")
         print("If you would like to ask a question, just enter the question.")
@@ -284,16 +241,20 @@ while keepGoing:
         print("If you would like to exit the program, please enter 6.")
         print("You can enter the word 'stats' to see the current settings.")
 
+    # Display current system stats.
     elif userInput == "stats":
         print("Mode: " + mode)
         print("Threshold: " + str(threshold))
         print("Documents: " + str(documentList))
 
-    elif mode == "Best Answer":
-        # getBestAnswer(userInput, documentList)
+    else:
         getAnswers(userInput, documentList, mode)
 
-    elif mode == "Multi Answer":
-        # getMultiAnswer(userInput, documentList)
-        getAnswers(userInput, documentList, mode)
+    # elif mode == "Best Answer":
+    #     # getBestAnswer(userInput, documentList)
+    #     getAnswers(userInput, documentList, mode)
+    #
+    # elif mode == "Multi Answer":
+    #     # getMultiAnswer(userInput, documentList)
+    #     getAnswers(userInput, documentList, mode)
 
