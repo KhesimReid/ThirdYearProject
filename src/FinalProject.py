@@ -8,9 +8,8 @@ from allennlp.predictors.predictor import Predictor
 # Load the similarity matrix from the saved file.
 similarity_matrix = pickle.load(open('similarity_matrix.sav', 'rb'))
 
-# Load the allenNLP  model
+# Load the allenNLP model
 print("Loading AllenNLP Predictor Model...\n")
-
 answerPredictor = Predictor.from_path(
     "https://storage.googleapis.com/allennlp-public-models/bidaf-elmo-model-2018.11.30-charpad.tar.gz")
 
@@ -63,20 +62,20 @@ def getAnswers(rawQuestion, documents, chosenMode):
 
             allText = [tokens, questionWords]
 
-            # Prepare a dictionary and a corpus.
+            # Prepare a dictionary from the paragraph and question words.
             dictionary = corpora.Dictionary(allText)
 
             # Convert the paragraph words and question words to bag of words vectors
             tokenVec = dictionary.doc2bow(tokens)
             questionVec = dictionary.doc2bow(questionWords)
 
-            # Using inner product with normalisation has same effect as soft cosine similarity
+            # Using inner product with normalisation has same effect as soft cosine similarity.
             simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
 
-            # Update the dictionary each time a paragraph is above the similarity threshold.
+            # Update the dictionary each time a paragraph is greater than or equal the similarity threshold.
             if simVal >= threshold:
-                # For multi-answer mode also, show sim val to know which paragraph is most similar to question
-                # so dictionary entry is list of lists (pairs)
+                # For multi-answer mode, also show simVal to know which paragraph is most similar to question.
+                # So dictionary entry is list of lists (pairs).
                 if chosenMode == 'Multi Answer':
                     if documentName in relevantParagraphs:
                         updatedList = relevantParagraphs.get(documentName)
@@ -91,7 +90,7 @@ def getAnswers(rawQuestion, documents, chosenMode):
                         newEntry = {documentName: firstPara}
                         relevantParagraphs.update(newEntry)
 
-                # Only need paragraphs for single answer mode so dictionary entry is list of paragraphs
+                # Only need paragraphs for single answer mode so dictionary entry is list of paragraphs.
                 else:
                     if documentName in relevantParagraphs:
                         updatedList = relevantParagraphs.get(documentName)
@@ -145,13 +144,13 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
         for key in relevantParagraphs.keys():
             print("File: " + key + "\n")
             documentParas = relevantParagraphs.get(key)
-            joinedText = '\n'.join(documentParas)
+            joinedText = '\n'.join(documentParas) # Put relevant paragraphs into one string to get better answer span.
 
             result = answerPredictor.predict(passage=joinedText, question=rawQuestion)
             print("Best Answer: ")
             answer = result['best_span_str']
 
-            # Split the accumulated paragraphs and print the one which contains the answer.
+            # Split the joined paragraphs and print the one which contains the answer.
             paras = joinedText.splitlines()
             for para in paras:
                 if answer in para:
@@ -247,14 +246,8 @@ while keepGoing:
         print("Threshold: " + str(threshold))
         print("Documents: " + str(documentList))
 
+    # Get answer for question.
     else:
         getAnswers(userInput, documentList, mode)
 
-    # elif mode == "Best Answer":
-    #     # getBestAnswer(userInput, documentList)
-    #     getAnswers(userInput, documentList, mode)
-    #
-    # elif mode == "Multi Answer":
-    #     # getMultiAnswer(userInput, documentList)
-    #     getAnswers(userInput, documentList, mode)
 
