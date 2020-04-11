@@ -17,7 +17,7 @@ for root, directory, files in os.walk(allFilesPath):
 
 
 # Generates the similarity matrix of words using the fasttext wiki-news model,
-# the documents in gensim's common texts and the words from our documents.
+# and the words from our documents.
 print("1. Loading Fasttext model...")
 fasttext_model300 = pickle.load(open('fasttext_model.sav', 'rb'))
 termsim_index = WordEmbeddingSimilarityIndex(fasttext_model300)
