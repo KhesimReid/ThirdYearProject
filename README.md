@@ -10,7 +10,7 @@ Run the following commands in the terminal:
 ## Running the code:
 When running the code for the absolute first time the following steps must be followed:
 <p>1. Run ModelLoader.py</p>
-<p>2. Run MatrixLoader.py and provide the path to the 'Training Documents' directory at the input prompt.</p>
+<p>2. Run MatrixLoader.py and provide the path to the 'Training Documents' directory at the input prompt. (This will take a few hours to run, in order to build the similarity matrix.)</p>
 <p>3. Run FinalProject.py and follow the prompts.</p>
 <br>
 <p>On subsequent runs of FinalProject.py, you will only need to complete step 3 above.</p>
