@@ -30,7 +30,9 @@ def getAnswers(rawQuestion, documents, chosenMode):
     # Pre-process the user's question.
     question = QAFunctions.removePunctuation(rawQuestion)
     questionWords = question.split()
+    questionWords = QAFunctions.caseFold(questionWords)
     questionWords = QAFunctions.removeStopWords(questionWords)
+    questionWords = QAFunctions.stemWords(questionWords)
 
     # Dictionary to store files and the paragraphs which were sufficiently relevant
     relevantParagraphs = dict()
@@ -58,7 +60,9 @@ def getAnswers(rawQuestion, documents, chosenMode):
             # Pre-process the paragraph string
             cleanedText = QAFunctions.removePunctuation(paragraph)
             tokens = cleanedText.split()
+            tokens = QAFunctions.caseFold(tokens)
             tokens = QAFunctions.removeStopWords(tokens)
+            tokens = QAFunctions.stemWords(tokens)
 
             allText = [tokens, questionWords]
 
@@ -70,7 +74,7 @@ def getAnswers(rawQuestion, documents, chosenMode):
             questionVec = dictionary.doc2bow(questionWords)
 
             # Using inner product with normalisation has same effect as soft cosine similarity.
-            simVal = similarity_matrix.inner_product(tokenVec, questionVec, normalized=True)
+            simVal = similarity_matrix.inner_product(questionVec, tokenVec, normalized=True)
 
             # Update the dictionary each time a paragraph is greater than or equal the similarity threshold.
             if simVal >= threshold:
