@@ -65,8 +65,8 @@ class MyTestCase(unittest.TestCase):
 
     # Test for lemmatising
     def test_lemmatisation(self):
-        tokens = [ 'running', 'stealing', 'exercising', 'kicks', 'broke']
-        expectedOutput = ['run', 'steal', 'exercise', 'kick', 'break']
+        tokens = [ 'bats', 'feet']
+        expectedOutput = ['bat', 'foot']
         lemmatisedText = src.QAFunctions.stemWords(tokens)
         self.assertEqual(expectedOutput, lemmatisedText)
 

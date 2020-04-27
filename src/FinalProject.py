@@ -30,10 +30,11 @@ def getAnswers(rawQuestion, documents, chosenMode):
     # Pre-process the user's question.
     question = QAFunctions.removePunctuation(rawQuestion)
     questionWords = question.split()
+    #questionWords = QAFunctions.removeStopWords(questionWords)
+    #questionWords = QAFunctions.caseFold(questionWords)
     questionWords = QAFunctions.removeStopWords(questionWords)
-    # questionWords = QAFunctions.caseFold(questionWords)
-    # questionWords = QAFunctions.removeStopWords(questionWords)
-    # questionWords = QAFunctions.stemWords(questionWords)
+    questionWords = QAFunctions.caseFold(questionWords)
+    questionWords = QAFunctions.stemWords(questionWords)
 
     # Dictionary to store files and the paragraphs which were sufficiently relevant
     relevantParagraphs = dict()
@@ -61,10 +62,11 @@ def getAnswers(rawQuestion, documents, chosenMode):
             # Pre-process the paragraph string
             cleanedText = QAFunctions.removePunctuation(paragraph)
             tokens = cleanedText.split()
+            #tokens = QAFunctions.removeStopWords(tokens)
+            #tokens = QAFunctions.caseFold(tokens)
             tokens = QAFunctions.removeStopWords(tokens)
-            # tokens = QAFunctions.caseFold(tokens)
-            # tokens = QAFunctions.removeStopWords(tokens)
-            #tokens = QAFunctions.stemWords(tokens)
+            tokens = QAFunctions.caseFold(tokens)
+            tokens = QAFunctions.stemWords(tokens)
 
             allText = [tokens, questionWords]
 
