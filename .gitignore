@@ -5,3 +5,8 @@ venv/lib
 pyvenv.cfg
 src/fasttext_model.sav
 src/similarity_matrix.sav
+src/InformationRetrieval.py
+src/Demo.py
+src/InitialGold.txt
+src/QuestionAndAnswer.py
+src/ReadingComprehension.py
