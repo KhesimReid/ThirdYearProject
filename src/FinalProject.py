@@ -30,8 +30,6 @@ def getAnswers(rawQuestion, documents, chosenMode):
     # Pre-process the user's question.
     question = QAFunctions.removePunctuation(rawQuestion)
     questionWords = question.split()
-    #questionWords = QAFunctions.removeStopWords(questionWords)
-    #questionWords = QAFunctions.caseFold(questionWords)
     questionWords = QAFunctions.removeStopWords(questionWords)
     questionWords = QAFunctions.caseFold(questionWords)
     questionWords = QAFunctions.stemWords(questionWords)
@@ -62,8 +60,6 @@ def getAnswers(rawQuestion, documents, chosenMode):
             # Pre-process the paragraph string
             cleanedText = QAFunctions.removePunctuation(paragraph)
             tokens = cleanedText.split()
-            #tokens = QAFunctions.removeStopWords(tokens)
-            #tokens = QAFunctions.caseFold(tokens)
             tokens = QAFunctions.removeStopWords(tokens)
             tokens = QAFunctions.caseFold(tokens)
             tokens = QAFunctions.stemWords(tokens)
@@ -155,15 +151,20 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
             joinedText = '\n'.join(documentParas) # Put relevant paragraphs into one string to get better answer span.
 
             result = answerPredictor.predict(passage=joinedText, question=rawQuestion)
-            print("Best Answer: ")
+            print("Answer Span: ")
             answer = result['best_span_str']
+            print(answer)
+            print("\n")
 
-            # Split the joined paragraphs and print the one which contains the answer.
-            paras = joinedText.splitlines()
-            for para in paras:
-                if answer in para:
-                    answerPara = para.replace(answer, '\033[44;33m{}\033[m'.format(answer))
-                    break
+            print("Retrieved Paragraphs:")
+            answerPara = joinedText.replace(answer, '\033[44;33m{}\033[m'.format(answer))
+            # # Split the joined paragraphs and print the one which contains the answer.
+            # paras = joinedText.splitlines()
+            # for para in paras:
+            #     #print(para)
+            #     if answer in para:
+            #         answerPara = para.replace(answer, '\033[44;33m{}\033[m'.format(answer))
+            #         break
 
             start = 0
             lineLength = len(answerPara)
@@ -177,7 +178,7 @@ def getSpan(relevantParagraphs, rawQuestion, chosenMode):
 
 
 # Default Settings
-threshold = 0.4
+threshold = 0.30
 mode = "Best Answer"
 keepGoing = True
 
