@@ -1,5 +1,4 @@
 import nltk
-from nltk.corpus import wordnet
 import re
 from nltk.corpus import stopwords
 from gensim.utils import simple_preprocess
@@ -16,17 +15,7 @@ def ReadTxtFiles(files):
             yield simple_preprocess(line)
 
 
-# Function for removing stop words from a given list of words.
-# It also lemmatizes and case folds the words to ease comparisons.
-# def removeStopWords(text):
-#     filteredText = []
-#     for word in text:
-#         if not word in stop_words:
-#             filteredText.append(lemmatizer.lemmatize(word.lower()))
-#
-#     return filteredText
-
-
+# Function for removing stop words
 def removeStopWords(text):
     stop_words = set(stopwords.words('english'))
     filteredText = []
@@ -37,6 +26,7 @@ def removeStopWords(text):
     return filteredText
 
 
+# Function for lemmatising tokens
 def stemWords(text):
     stemmedText = []
     for word in text:
@@ -45,6 +35,7 @@ def stemWords(text):
     return stemmedText
 
 
+# Function for case folding tokens
 def caseFold(text):
     foldedText = []
     for word in text:
